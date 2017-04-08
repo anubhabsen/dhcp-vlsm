@@ -4,7 +4,7 @@ import math
 lines = [line.rstrip('\n') for line in open('subnets.conf')]
 # print lines
 
-base_address = (lines[0].split('/'))[0]
+base_address = lines[0].split('/')[0]
 bits_available = 32 - int(lines[0].split('/')[1])
 
 N = int(lines[1])
@@ -46,10 +46,29 @@ broadcast_addresses = {}
 subnet_masks = {}
 
 sorted_labs = list(reversed(sorted(lab_requests.items(), key=operator.itemgetter(1))))
-print sorted_labs
+# print sorted_labs
+
+base_num = [int(x) for x in base_address.split('.')]
+base10 = 0
+for i in range(4):
+	base10 += pow(256, i) * base_num[3 - i]
 
 for lab in sorted_labs:
-	temp = math.ceil(math.log(int(lab[1]) + 2, 2))
-	subnet_masks[lab[0]] = '/' + str(int(32 - temp))
+	to_allocate = math.ceil(math.log(int(lab[1]) + 2, 2))
+	subnet_masks[lab[0]] = '/' + str(int(32 - to_allocate))
+
+	temp = int(pow(2, to_allocate))
+	base10 += temp
+	tempbase10 = base10
+	addr = ''
+	for i in range(4):
+		if i == 0:
+			addr = str(tempbase10 % 256) + addr
+		else:
+			addr = str(tempbase10 % 256) + '.' + addr
+		tempbase10 /= 256
+
+	subnet_addresses[lab[0]] = addr
 
 print subnet_masks
+print subnet_addresses
