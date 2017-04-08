@@ -54,11 +54,6 @@ for i in range(4):
 	base10 += pow(256, i) * base_num[3 - i]
 
 for lab in sorted_labs:
-	to_allocate = math.ceil(math.log(int(lab[1]) + 2, 2))
-	subnet_masks[lab[0]] = '/' + str(int(32 - to_allocate))
-
-	temp = int(pow(2, to_allocate))
-	base10 += temp
 	tempbase10 = base10
 	addr = ''
 	for i in range(4):
@@ -70,5 +65,22 @@ for lab in sorted_labs:
 
 	subnet_addresses[lab[0]] = addr
 
+	to_allocate = math.ceil(math.log(int(lab[1]) + 2, 2))
+	subnet_masks[lab[0]] = '/' + str(int(32 - to_allocate))
+	temp = int(pow(2, to_allocate))
+	base10 += temp
+
+	baddr = base10 - 1
+	stbaddr = ''
+	for i in range(4):
+		if i == 0:
+			stbaddr = str(baddr % 256) + stbaddr
+		else:
+			stbaddr = str(baddr % 256) + '.' + stbaddr
+		baddr /= 256
+
+	broadcast_addresses[lab[0]] = stbaddr
+
 print subnet_masks
 print subnet_addresses
+print broadcast_addresses
