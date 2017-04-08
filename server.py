@@ -1,3 +1,6 @@
+import operator
+import math
+
 lines = [line.rstrip('\n') for line in open('subnets.conf')]
 # print lines
 
@@ -35,9 +38,18 @@ while total_requests > max_hosts:
 
 	total_requests -= 1
 
-# print bits_available
-# print max_hosts
-if max_hosts - total_requests > 0:
-	lab_requests['Unknown'] = max_hosts - total_requests
+# if max_hosts - total_requests > 0:
+# 	lab_requests['Unknown'] = max_hosts - total_requests
 
-print lab_requests
+subnet_addresses = {}
+broadcast_addresses = {}
+subnet_masks = {}
+
+sorted_labs = list(reversed(sorted(lab_requests.items(), key=operator.itemgetter(1))))
+print sorted_labs
+
+for lab in sorted_labs:
+	temp = math.ceil(math.log(int(lab[1]) + 2, 2))
+	subnet_masks[lab[0]] = '/' + str(int(32 - temp))
+
+print subnet_masks
