@@ -37,6 +37,10 @@ if total_requests > max_hosts:
 			lab_requests[key] += 1
 			remaining_hosts -= 1
 
+	print "Due to unavailability of hosts, number of hosts assigned per lab has been modified. Here's the new Lab-Hosts list"
+	for key, value in lab_requests.iteritems():
+		print key, '-', value
+
 # if max_hosts - total_requests > 0:
 # 	lab_requests['Unknown'] = max_hosts - total_requests
 
