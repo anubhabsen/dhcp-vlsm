@@ -27,16 +27,15 @@ total_requests = 0
 for i in range(2, 2 + N):
 	total_requests += int(lines[i].split(':')[1])
 
-while total_requests > max_hosts:
-	max_requests_from_lab = 0
+if total_requests > max_hosts:
+	requests_per_lab = int(max_hosts / N)
 	for key, value in lab_requests.iteritems():
-		if value > max_requests_from_lab:
-			max_requests_from_lab = value
-			index_of_max = key
-
-	lab_requests[index_of_max] -= 1
-
-	total_requests -= 1
+		lab_requests[key] = requests_per_lab
+	remaining_hosts = max_hosts % N
+	for key, value in lab_requests.iteritems():
+		if remaining_hosts > 0:
+			lab_requests[key] += 1
+			remaining_hosts -= 1
 
 # if max_hosts - total_requests > 0:
 # 	lab_requests['Unknown'] = max_hosts - total_requests
