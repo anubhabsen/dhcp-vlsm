@@ -5,6 +5,25 @@ import socket
 subnet_addresses = {}
 broadcast_addresses = {}
 subnet_masks = {}
+mac_to_lab = {}
+
+
+def toipstring(num):
+	addr = ''
+	for i in range(4):
+		if i == 0:
+			addr = str(num % 256) + addr
+		else:
+			addr = str(num % 256) + '.' + addr
+		num /= 256
+	return addr
+
+def tobase10(s):
+	base_num = [int(x) for x in s.split('.')]
+	base10 = 0
+	for i in range(4):
+		base10 += pow(256, i) * base_num[3 - i]
+	return base10
 
 def init_hosts():
 	lines = [line.rstrip('\n') for line in open('subnets.conf')]
@@ -16,7 +35,6 @@ def init_hosts():
 	N = int(lines[1])
 
 	lab_requests = {}
-	mac_to_lab = {}
 
 	for i in range(2, 2 + N):
 		temp = lines[i].split(':')
@@ -47,57 +65,42 @@ def init_hosts():
 
 	print lab_requests
 	print
-	# print sorted_labs
-
-	base_num = [int(x) for x in base_address.split('.')]
-	base10 = 0
-	for i in range(4):
-		base10 += pow(256, i) * base_num[3 - i]
+	base10 = tobase10(base_address)
 
 	for lab in sorted_labs:
-		tempbase10 = base10
-		addr = ''
-		for i in range(4):
-			if i == 0:
-				addr = str(tempbase10 % 256) + addr
-			else:
-				addr = str(tempbase10 % 256) + '.' + addr
-			tempbase10 /= 256
-
-		subnet_addresses[lab[0]] = addr
+		subnet_addresses[lab[0]] = toipstring(base10)
 
 		to_allocate = math.ceil(math.log(int(lab[1]) + 2, 2))
 		subnet_masks[lab[0]] = '/' + str(int(32 - to_allocate))
 		temp = int(pow(2, to_allocate))
 		base10 += temp
 
-		baddr = base10 - 1
-		stbaddr = ''
-		for i in range(4):
-			if i == 0:
-				stbaddr = str(baddr % 256) + stbaddr
-			else:
-				stbaddr = str(baddr % 256) + '.' + stbaddr
-			baddr /= 256
-
-		broadcast_addresses[lab[0]] = stbaddr
+		broadcast_addresses[lab[0]] = toipstring(base10 - 1)
 
 def listen():
 	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 	# Bind the socket to the port
-	server_address = ('localhost', 60000)
+	server_address = ('', 60000)
 	sock.bind(server_address)
 
 	while True:
-		data, address = sock.recvfrom(1024)
-		print data
-		if data:
-			sock.sendto(data, address)
+		mac, address = sock.recvfrom(17)
+		if mac:
+			lab_name = mac_to_lab[str(mac)]
+
+			saddr = subnet_addresses[lab_name]
+			baddr = broadcast_addresses[lab_name]
+			mask = subnet_masks[lab_name]
+			baseplusone = toipstring(tobase10(saddr) + 1)
+
+			sock.sendto(saddr + mask + ' ' + saddr + ' ' + baddr + ' ' + baseplusone + ' ' + baseplusone, address)
 
 if __name__ == "__main__":
 	init_hosts()
 	print subnet_masks
 	print subnet_addresses
 	print broadcast_addresses
+	print mac_to_lab
+	print
 	listen()
