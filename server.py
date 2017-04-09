@@ -1,5 +1,6 @@
 import operator
 import math
+import socket
 
 subnet_addresses = {}
 broadcast_addresses = {}
@@ -81,8 +82,22 @@ def init_hosts():
 
 		broadcast_addresses[lab[0]] = stbaddr
 
+def listen():
+	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+	# Bind the socket to the port
+	server_address = ('localhost', 60000)
+	sock.bind(server_address)
+
+	while True:
+		data, address = sock.recvfrom(1024)
+		print data
+		if data:
+			sock.sendto(data, address)
+
 if __name__ == "__main__":
 	init_hosts()
 	print subnet_masks
 	print subnet_addresses
 	print broadcast_addresses
+	listen()
