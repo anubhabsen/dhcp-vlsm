@@ -32,21 +32,20 @@ def init_hosts():
 	for i in range(2, 2 + N):
 		total_requests += int(lines[i].split(':')[1])
 
-	if total_requests > max_hosts:
-		requests_per_lab = int(max_hosts / N)
-		for key, value in lab_requests.iteritems():
-			lab_requests[key] = requests_per_lab
-		remaining_hosts = max_hosts % N
-		for key, value in lab_requests.iteritems():
-			if remaining_hosts > 0:
-				lab_requests[key] += 1
-				remaining_hosts -= 1
-
-		print "Due to unavailability of hosts, number of hosts assigned per lab has been modified. Here's the new Lab-Hosts list"
-		for key, value in lab_requests.iteritems():
-			print key, '-', value
-
 	sorted_labs = list(reversed(sorted(lab_requests.items(), key=operator.itemgetter(1))))
+
+	if total_requests > max_hosts:
+		print 'Due to unavailability of IP addresses only the following labs can be accommodated:'
+
+	while total_requests > max_hosts:
+		lab_name = sorted_labs[N - 1][0]
+		total_requests -= lab_requests[lab_name]
+		del lab_requests[lab_name]
+		sorted_labs.pop()
+		N -= 1
+
+	print lab_requests
+	print
 	# print sorted_labs
 
 	base_num = [int(x) for x in base_address.split('.')]
@@ -87,4 +86,3 @@ if __name__ == "__main__":
 	print subnet_masks
 	print subnet_addresses
 	print broadcast_addresses
-
