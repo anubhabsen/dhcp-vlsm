@@ -29,9 +29,24 @@ def tobase10(s):
 
 def read_validate(lines):
 	base_address = lines[0].split('/')[0]
-	bits_available = 32 - int(lines[0].split('/')[1])
 
-	N = int(lines[1])
+	try:
+		bits_available = 32 - int(lines[0].split('/')[1])
+	except:
+		print 'subnet mask is invalid. Please fix conf file'
+		sys.exit(0)
+
+	try:
+	    socket.inet_aton(base_address)
+	except socket.error:
+	    print 'The base IP address provided is incorrect. Please fix conf file'
+	    sys.exit(0)
+
+	try:
+		N = int(lines[1])
+	except:
+		print 'Number of labs line is invalid. Please fix conf file'
+		sys.exit(0)
 
 	lab_requests = {}
 
