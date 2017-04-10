@@ -2,6 +2,7 @@ import operator
 import math
 import socket
 import re
+import sys
 
 subnet_addresses = {}
 broadcast_addresses = {}
@@ -36,8 +37,11 @@ def read_validate(lines):
 
 	for i in range(2, 2 + N):
 		temp = lines[i].split(':')
-
-		lab_requests[temp[0]] = int(temp[1])
+		try:
+			lab_requests[temp[0]] = int(temp[1])
+		except:
+			print 'Error in the labs and number of hosts in each lab. Please fix conf file'
+			sys.exit(0)
 
 	for i in range(2 + N, len(lines)):
 		temp = lines[i].split('-')
