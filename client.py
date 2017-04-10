@@ -18,10 +18,12 @@ sock.sendto(mac_address, server_address)
 
 data, server = sock.recvfrom(1024)
 sock.close()
-
-addresses = data.split()
-print 'IP Address with CIDR: ' + addresses[0]
-print 'Network Address: ' + addresses[1]
-print 'Broadcast address: ' + addresses[2]
-print 'Sample Gateway: ' + addresses[3]
-print 'Sample DNS: ' + addresses[4]
+if data == 'invalid MAC':
+	print 'Invalid MAC address sent'
+else:
+	addresses = data.split()
+	print 'IP Address with CIDR: ' + addresses[0]
+	print 'Network Address: ' + addresses[1]
+	print 'Broadcast address: ' + addresses[2]
+	print 'Sample Gateway: ' + addresses[3]
+	print 'Sample DNS: ' + addresses[4]

@@ -1,6 +1,7 @@
 import operator
 import math
 import socket
+import re
 
 subnet_addresses = {}
 broadcast_addresses = {}
@@ -27,7 +28,6 @@ def tobase10(s):
 
 def init_hosts():
 	lines = [line.rstrip('\n') for line in open('subnets.conf')]
-	# print lines
 
 	base_address = lines[0].split('/')[0]
 	bits_available = 32 - int(lines[0].split('/')[1])
@@ -87,14 +87,18 @@ def listen():
 	while True:
 		mac, address = sock.recvfrom(17)
 		if mac:
-			lab_name = mac_to_lab[str(mac)]
+			if re.match("[0-9a-f]{2}([-:])[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", mac.lower()):
+				lab_name = mac_to_lab[str(mac)]
 
-			saddr = subnet_addresses[lab_name]
-			baddr = broadcast_addresses[lab_name]
-			mask = subnet_masks[lab_name]
-			baseplusone = toipstring(tobase10(saddr) + 1)
+				saddr = subnet_addresses[lab_name]
+				baddr = broadcast_addresses[lab_name]
+				mask = subnet_masks[lab_name]
+				baseplusone = toipstring(tobase10(saddr) + 1)
 
-			sock.sendto(saddr + mask + ' ' + saddr + ' ' + baddr + ' ' + baseplusone + ' ' + baseplusone, address)
+				sock.sendto(saddr + mask + ' ' + saddr + ' ' + baddr + ' ' + baseplusone + ' ' + baseplusone, address)
+			else:
+				sock.sendto('invalid MAC', address)
+				print 'invalid MAC address received. Please resend a correct one.'
 
 if __name__ == "__main__":
 	init_hosts()
