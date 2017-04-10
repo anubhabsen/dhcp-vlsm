@@ -88,7 +88,11 @@ def listen():
 		mac, address = sock.recvfrom(17)
 		if mac:
 			if re.match("[0-9a-f]{2}([-:])[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", mac.lower()):
-				lab_name = mac_to_lab[str(mac)]
+				if mac in mac_to_lab.keys():
+					lab_name = mac_to_lab[str(mac)]
+				else:
+					print 'to assign new range to unknown lab'
+					continue
 
 				saddr = subnet_addresses[lab_name]
 				baddr = broadcast_addresses[lab_name]
