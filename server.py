@@ -36,11 +36,16 @@ def read_validate(lines):
 
 	for i in range(2, 2 + N):
 		temp = lines[i].split(':')
+
 		lab_requests[temp[0]] = int(temp[1])
 
 	for i in range(2 + N, len(lines)):
 		temp = lines[i].split('-')
-		mac_to_lab[temp[0]] = temp[1]
+		if re.match("[0-9a-f]{2}([-:])[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", temp[0].lower()):
+			mac_to_lab[temp[0]] = temp[1]
+		else:
+			print 'Invalid MAC address in conf file. Please correct the MAC addresses'
+			sys.exit(0)
 
 	max_hosts = max((1 << bits_available) - 2 * (N + 1), 0)
 
