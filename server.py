@@ -26,9 +26,7 @@ def tobase10(s):
 		base10 += pow(256, i) * base_num[3 - i]
 	return base10
 
-def init_hosts():
-	lines = [line.rstrip('\n') for line in open('subnets.conf')]
-
+def read_validate(lines):
 	base_address = lines[0].split('/')[0]
 	bits_available = 32 - int(lines[0].split('/')[1])
 
@@ -50,6 +48,19 @@ def init_hosts():
 
 	for i in range(2, 2 + N):
 		total_requests += int(lines[i].split(':')[1])
+
+	return [base_address, N, lab_requests, max_hosts, total_requests]
+
+def init_hosts():
+	lines = [line.rstrip('\n') for line in open('subnets.conf')]
+
+	read_data = read_validate(lines)
+
+	base_address = read_data[0]
+	N = read_data[1]
+	lab_requests = read_data[2]
+	max_hosts = read_data[3]
+	total_requests = read_data[4]
 
 	sorted_labs = list(reversed(sorted(lab_requests.items(), key=operator.itemgetter(1))))
 
