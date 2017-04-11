@@ -8,6 +8,7 @@ subnet_addresses = {}
 broadcast_addresses = {}
 subnet_masks = {}
 mac_to_lab = {}
+mac_to_curr_hosts = {}
 
 
 def toipstring(num):
@@ -62,6 +63,7 @@ def read_validate(lines):
 		temp = lines[i].split('-')
 		if re.match("[0-9a-f]{2}([-:])[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", temp[0].lower()):
 			mac_to_lab[temp[0]] = temp[1]
+			mac_to_curr_hosts[temp[0]] = 1
 		else:
 			print 'Invalid MAC address in conf file. Please correct the MAC addresses'
 			sys.exit(0)
@@ -145,5 +147,6 @@ if __name__ == "__main__":
 	print subnet_addresses
 	print broadcast_addresses
 	print mac_to_lab
+	print mac_to_curr_hosts
 	print
 	listen()
