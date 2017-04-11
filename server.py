@@ -9,6 +9,7 @@ broadcast_addresses = {}
 subnet_masks = {}
 mac_to_lab = {}
 mac_to_curr_hosts = {}
+N = 1
 
 
 def toipstring(num):
@@ -75,7 +76,7 @@ def read_validate(lines):
 	for i in range(2, 2 + N):
 		total_requests += int(lines[i].split(':')[1])
 
-	return [base_address, N, lab_requests, max_hosts, total_requests]
+	return [base_address, N, lab_requests, max_hosts, total_requests, bits_available]
 
 def init_hosts():
 	lines = [line.rstrip('\n') for line in open('subnets.conf')]
@@ -87,6 +88,7 @@ def init_hosts():
 	lab_requests = read_data[2]
 	max_hosts = read_data[3]
 	total_requests = read_data[4]
+	bits_available = read_data[5]
 
 	sorted_labs = list(reversed(sorted(lab_requests.items(), key=operator.itemgetter(1))))
 
@@ -104,6 +106,16 @@ def init_hosts():
 	print
 	base10 = tobase10(base_address)
 
+	max_broad = 0
+	for key, value in broadcast_addresses.iteritems():
+		if max_broad < tobase10(value):
+			max_broad = tobase10(value)
+	max_broad = toipstring(max_broad)
+	subnet_addresses['unknown-lab'] = toipstring(tobase10(max_broad) + 1)
+	mac_to_curr_hosts['unknown-lab'] = 1
+
+	max_hosts = max((1 << bits_available) - 2 * (N + 1), 0)
+
 	for lab in sorted_labs:
 		subnet_addresses[lab[0]] = toipstring(base10)
 
@@ -113,6 +125,15 @@ def init_hosts():
 		base10 += temp
 
 		broadcast_addresses[lab[0]] = toipstring(base10 - 1)
+
+	subnet_addresses['unknown-lab'] = toipstring(base10)
+	to_allocate = math.ceil(math.log(max_hosts - total_requests, 2))
+	subnet_masks['unknown-lab'] = '/' + str(int(32 - to_allocate))
+	print 'allocate', to_allocate
+	temp = int(pow(2, to_allocate))
+	base10 = tobase10(max_broad) + temp
+	broadcast_addresses['unknown-lab'] = '255.255.255.255'
+
 
 def listen():
 	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -128,7 +149,20 @@ def listen():
 				if mac in mac_to_lab.keys():
 					lab_name = mac_to_lab[str(mac)]
 				else:
-					print 'to assign new range to unknown lab'
+					new_ip_increment = mac_to_curr_hosts['unknown-lab'] + 1
+					new_ip = toipstring(tobase10(subnet_addresses['unknown-lab']) + new_ip_increment)
+					saddr = subnet_addresses['unknown-lab']
+					baddr = broadcast_addresses['unknown-lab']
+					if tobase10(subnet_addresses['unknown-lab']) + new_ip_increment >= tobase10(baddr):
+						print 'No space for more hosts.'
+						sock.sendto('No space', address)
+						continue
+					mask = subnet_masks['unknown-lab']
+					baseplusone = toipstring(tobase10(saddr) + 1)
+
+					sock.sendto(new_ip + mask + ' ' + saddr + ' ' + baddr + ' ' + baseplusone + ' ' + baseplusone, address)
+					mac_to_curr_hosts['unknown-lab'] += 1
+					# print subnet_addresses['unknown-lab'], mac_to_curr_hosts['unknown-lab']
 					continue
 
 				new_ip_increment = mac_to_curr_hosts[str(mac)] + 1
