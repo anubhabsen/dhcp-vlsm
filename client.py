@@ -20,6 +20,8 @@ data, server = sock.recvfrom(1024)
 sock.close()
 if data == 'invalid MAC':
 	print 'Invalid MAC address sent'
+elif data == 'No space':
+	print 'No space for desired IP'
 else:
 	addresses = data.split()
 	print 'IP Address with CIDR: ' + addresses[0]

@@ -131,12 +131,19 @@ def listen():
 					print 'to assign new range to unknown lab'
 					continue
 
+				new_ip_increment = mac_to_curr_hosts[str(mac)] + 1
+				new_ip = toipstring(tobase10(subnet_addresses[lab_name]) + new_ip_increment)
 				saddr = subnet_addresses[lab_name]
 				baddr = broadcast_addresses[lab_name]
+				if tobase10(subnet_addresses[lab_name]) + new_ip_increment >= tobase10(baddr):
+					print 'No space for more hosts.'
+					sock.sendto('No space', address)
+					continue
 				mask = subnet_masks[lab_name]
 				baseplusone = toipstring(tobase10(saddr) + 1)
 
-				sock.sendto(saddr + mask + ' ' + saddr + ' ' + baddr + ' ' + baseplusone + ' ' + baseplusone, address)
+				sock.sendto(new_ip + mask + ' ' + saddr + ' ' + baddr + ' ' + baseplusone + ' ' + baseplusone, address)
+				mac_to_curr_hosts[str(mac)] += 1
 			else:
 				sock.sendto('invalid MAC', address)
 				print 'invalid MAC address received. Please resend a correct one.'
