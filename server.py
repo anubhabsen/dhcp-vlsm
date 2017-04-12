@@ -10,6 +10,7 @@ subnet_masks = {}
 mac_to_lab = {}
 mac_to_curr_hosts = {}
 N = 1
+last_address = 0
 
 
 def toipstring(num):
@@ -76,7 +77,13 @@ def read_validate(lines):
 	for i in range(2, 2 + N):
 		total_requests += int(lines[i].split(':')[1])
 
-	return [base_address, N, lab_requests, max_hosts, total_requests, bits_available]
+	to_add = 0
+	for i in range(bits_available):
+		to_add = to_add * 10 + 1
+
+	last_address = toipstring(tobase10(base_address) + to_add)
+
+	return [base_address, N, lab_requests, max_hosts, total_requests, bits_available, last_address]
 
 def init_hosts():
 	lines = [line.rstrip('\n') for line in open('subnets.conf')]
@@ -89,6 +96,7 @@ def init_hosts():
 	max_hosts = read_data[3]
 	total_requests = read_data[4]
 	bits_available = read_data[5]
+	last_address = read_data[6]
 
 	sorted_labs = list(reversed(sorted(lab_requests.items(), key=operator.itemgetter(1))))
 
@@ -132,7 +140,7 @@ def init_hosts():
 	print 'allocate', to_allocate
 	temp = int(pow(2, to_allocate))
 	base10 = tobase10(max_broad) + temp
-	broadcast_addresses['unknown-lab'] = '255.255.255.255'
+	broadcast_addresses['unknown-lab'] = last_address
 
 
 def listen():
@@ -188,6 +196,5 @@ if __name__ == "__main__":
 	print subnet_addresses
 	print broadcast_addresses
 	print mac_to_lab
-	print mac_to_curr_hosts
 	print
 	listen()
