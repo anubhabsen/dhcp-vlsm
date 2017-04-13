@@ -62,7 +62,7 @@ def read_validate(lines):
 			sys.exit(0)
 
 	for i in range(2 + N, len(lines)):
-		temp = lines[i].split('-')
+		temp = lines[i].split()
 		if re.match("[0-9a-f]{2}([-:])[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", temp[0].lower()):
 			mac_to_lab[temp[0]] = temp[1]
 			mac_to_curr_hosts[temp[0]] = 1
@@ -114,14 +114,6 @@ def init_hosts():
 	print
 	base10 = tobase10(base_address)
 
-	max_broad = 0
-	for key, value in broadcast_addresses.iteritems():
-		if max_broad < tobase10(value):
-			max_broad = tobase10(value)
-	max_broad = toipstring(max_broad)
-	subnet_addresses['unknown-lab'] = toipstring(tobase10(max_broad) + 1)
-	mac_to_curr_hosts['unknown-lab'] = 1
-
 	max_hosts = max((1 << bits_available) - 2 * (N + 1), 0)
 
 	for lab in sorted_labs:
@@ -134,13 +126,22 @@ def init_hosts():
 
 		broadcast_addresses[lab[0]] = toipstring(base10 - 1)
 
+	max_broad = 0
+	for key, value in broadcast_addresses.iteritems():
+		if max_broad < tobase10(value):
+			max_broad = tobase10(value)
+	max_broad = toipstring(max_broad)
+	subnet_addresses['unknown-lab'] = toipstring(tobase10(max_broad) + 1)
+	mac_to_curr_hosts['unknown-lab'] = 1
+
 	subnet_addresses['unknown-lab'] = toipstring(base10)
 	to_allocate = math.ceil(math.log(max_hosts - total_requests, 2))
 	subnet_masks['unknown-lab'] = '/' + str(int(32 - to_allocate))
-	print 'allocate', to_allocate
+	# print 'allocate', to_allocate
 	temp = int(pow(2, to_allocate))
 	base10 = tobase10(max_broad) + temp
-	broadcast_addresses['unknown-lab'] = last_address
+	# broadcast_addresses['unknown-lab'] = last_address
+	broadcast_addresses['unknown-lab'] = toipstring(tobase10(base_address) + pow(2, bits_available + 1) - 1)
 
 
 def listen():
@@ -196,5 +197,6 @@ if __name__ == "__main__":
 	print subnet_addresses
 	print broadcast_addresses
 	print mac_to_lab
+	# print toipstring(tobase10('10.220.64.0') + pow(2, 15) - 1)
 	print
 	listen()

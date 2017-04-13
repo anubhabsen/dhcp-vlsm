@@ -1,7 +1,8 @@
 import socket
 import sys
 
-if sys.argv[1] != '-m':
+if len(sys.argv) < 2 or sys.argv[1] != '-m':
+	print 'Invalid usage'
 	sys.exit(0)
 
 
